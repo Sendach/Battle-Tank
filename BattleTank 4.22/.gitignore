@@ -77,5 +77,4 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 # Started Content
-Content/StarterContent/Textures
-Content/StarterContent/HDRI
+Content/StarterContent/*

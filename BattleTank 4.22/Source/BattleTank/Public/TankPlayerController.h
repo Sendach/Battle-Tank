@@ -27,10 +27,16 @@ public:
 
 	bool GetSightRayHitLocation(FVector& OutHitLocation) const;
 	ATank* GetControlledTank() const;
+	// Calculates the direction of the crosshair in the world
+	bool GetAimDirection(FVector2D ScreenLocation, FVector& AimDirection) const;
+	// Ray trace from the crosshair position out to the world
+	bool GetAimVectorHitLocation(FVector& HitLocation, FVector AimDirection) const;
 
 	UPROPERTY(EditAnywhere, Category = "Crosshair")
 	float CrossHairXLocation;
 	UPROPERTY(EditAnywhere, Category = "Crosshair")
 	float CrossHairYLocation;
+	UPROPERTY(EditAnywhere)
+	float AimLenght;
 	FVector2D CrossHiarScreenLocation;
 };
