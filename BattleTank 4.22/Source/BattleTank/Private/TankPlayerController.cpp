@@ -4,6 +4,12 @@
 #include "TankPlayerController.h"
 #include "Tank.h"
 
+ATankPlayerController::ATankPlayerController()
+{
+	CrossHairXLocation = 0.5f;
+	CrossHairYLocation = 0.33333f;
+}
+
 void ATankPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -17,6 +23,38 @@ void ATankPlayerController::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AIController possesing: %s"), *ControlledTank->GetName());
 	}
+}
+
+void ATankPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	AimTowardsCrosshair();
+
+}
+
+void ATankPlayerController::AimTowardsCrosshair()
+{
+	if (GetControlledTank())
+	{
+		FVector HitLocation; // OUT parameter
+		if (GetSightRayHitLocation(HitLocation))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HitLocation: %s"), *HitLocation.ToString());
+		}
+	}
+}
+
+// Gets world location of ray-trace through crosshair, true if it hits landscape
+bool ATankPlayerController::GetSightRayHitLocation(FVector& OutHitLocation) const
+{
+	// Size of current viewport
+	int32 ViewPortSizeX, ViewPortSizeY;
+	GetViewportSize(ViewPortSizeX, ViewPortSizeY);
+
+	auto ScreenLocation = FVector2D(ViewPortSizeX * CrossHairXLocation,ViewPortSizeY * CrossHairYLocation);
+
+	return true;
 }
 
 ATank* ATankPlayerController::GetControlledTank() const

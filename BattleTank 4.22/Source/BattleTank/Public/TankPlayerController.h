@@ -14,8 +14,23 @@ class BATTLETANK_API ATankPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
+
+
 public:
+	ATankPlayerController();
+	virtual void Tick(float DeltaTime) override;
+
+	/** Shoots where our crosshair is */
+	void AimTowardsCrosshair();
+
+	bool GetSightRayHitLocation(FVector& OutHitLocation) const;
 	ATank* GetControlledTank() const;
 
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere, Category = "Crosshair")
+	float CrossHairXLocation;
+	UPROPERTY(EditAnywhere, Category = "Crosshair")
+	float CrossHairYLocation;
+	FVector2D CrossHiarScreenLocation;
 };
