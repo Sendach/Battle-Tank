@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TankBarrel.h"
+#include "TankTurret.h"
+#include "Engine/World.h"
 
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
@@ -21,23 +23,35 @@ void UTankAimingComponent::AimAt(FVector HitLocation, float BulletSpeed)
 {
 	if (Barrel)
 	{
-		FVector OutBulletVelocity = FVector(0);
+		FVector OutBulletVelocity;
 		FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
 
 		// Calculate the outLunchVelocity
-		bool Check = UGameplayStatics::SuggestProjectileVelocity(this, OutBulletVelocity, StartLocation, HitLocation,
-			BulletSpeed, ESuggestProjVelocityTraceOption::DoNotTrace);
-		if (Check)
+		bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity(this, OutBulletVelocity, StartLocation, HitLocation,
+			BulletSpeed, false, 0.f, 0.f, ESuggestProjVelocityTraceOption::DoNotTrace);
+		if (bHaveAimSolution)
 		{
 			auto AimDirection = OutBulletVelocity.GetSafeNormal();
 			MoveBarrelTowards(AimDirection);
+			RotateTurret(AimDirection);
 		}
 	}
 }
 
 void UTankAimingComponent::SetBarrelReference(UTankBarrel* BarrelToSet)
 {
-	Barrel = BarrelToSet;
+	if (BarrelToSet)
+	{
+		Barrel = BarrelToSet;
+	}
+}
+
+void UTankAimingComponent::SetTurretReference(UTankTurret* TurretToSet)
+{
+	if (TurretToSet)
+	{
+		Turret = TurretToSet;
+	}
 }
 
 void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection)
@@ -47,5 +61,14 @@ void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection)
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
 
-	Barrel->Elevate(5.f);
+	Barrel->Elevate(DeltaRotator.Pitch);
+}
+
+void UTankAimingComponent::RotateTurret(FVector AimDirection)
+{
+	auto TurretRotator = Turret->GetForwardVector().Rotation();
+	auto AimAsRotator = AimDirection.Rotation();
+	auto DeltaRotator = AimAsRotator - TurretRotator;
+
+	Turret->Azimuth(DeltaRotator.Yaw);
 }
