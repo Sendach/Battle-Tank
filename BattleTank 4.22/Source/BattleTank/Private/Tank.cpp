@@ -5,7 +5,9 @@
 
 #include "TankAimingComponent.h"
 #include "TankBarrel.h"
-
+#include "Projectile.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 // Sets default values
 ATank::ATank()
@@ -13,7 +15,8 @@ ATank::ATank()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	TankAimingComponent = CreateDefaultSubobject<UTankAimingComponent>(TEXT("Aiming Component"));
-	BulletSpeed = 100000.f;
+	BulletSpeed = 4000.f;
+	bCanFire = true;
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +41,7 @@ void ATank::AimAt(FVector HitLocation)
 void ATank::SetBarrelReference(UTankBarrel* BarrelToSet)
 {
 	TankAimingComponent->SetBarrelReference(BarrelToSet);
+	Barrel = BarrelToSet;
 }
 
 void ATank::SetTurretReference(UTankTurret* TurretToSet)
@@ -47,5 +51,20 @@ void ATank::SetTurretReference(UTankTurret* TurretToSet)
 
 void ATank::Fire()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Firing bom shaka laka"));
+	if (Barrel && bCanFire)
+	{
+		bCanFire = false;
+
+		auto spawnedProjectile = GetWorld()->SpawnActor<AProjectile>(Projectile, Barrel->GetSocketLocation(FName("Projectile")), 
+			Barrel->GetSocketRotation(FName("Projectile")));
+		spawnedProjectile->LaunchProjectile(BulletSpeed);
+
+		GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ATank::ResetFire, 3.0f, false);
+	}
+}
+
+void ATank::ResetFire()
+{
+	bCanFire = true;
+	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }
