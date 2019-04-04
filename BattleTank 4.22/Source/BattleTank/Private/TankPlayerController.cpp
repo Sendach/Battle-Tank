@@ -11,12 +11,14 @@ ATankPlayerController::ATankPlayerController()
 	CrossHairXLocation = 0.5f;
 	CrossHairYLocation = 0.33333f;
 	AimLenght = 1000000; // 10 km
+
 }
 
 void ATankPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	
 	auto ControlledTank = GetControlledTank();
 	if (!ControlledTank)
 	{
@@ -43,7 +45,7 @@ void ATankPlayerController::AimTowardsCrosshair()
 		FVector HitLocation; // OUT parameter
 		if (GetSightRayHitLocation(HitLocation))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Location:  %s"), *HitLocation.ToString());
+			GetControlledTank()->AimAt(HitLocation);
 		}
 	}
 }
