@@ -10,6 +10,7 @@ class UTankAimingComponent;
 class UTankBarrel;
 class UTankTurret;
 class AProjectile;
+class UTankMovementComponent;
 
 UCLASS()
 class BATTLETANK_API ATank : public APawn
@@ -27,9 +28,10 @@ public:
 	void Fire();
 
 protected:
-	UTankAimingComponent* TankAimingComponent;
-
-	// Resets ability to fire
+	UTankAimingComponent* TankAimingComponent = nullptr;
+	UPROPERTY(BlueprintReadOnly)
+	UTankMovementComponent* TankMovementComponent = nullptr;
+	//Resets ability to fire
 	void ResetFire();
 private:
 
@@ -49,7 +51,7 @@ private:
 	float BulletSpeed;
 
 	UPROPERTY(EditDefaultsOnly, Category = Firing)
-	float RelaodTime;
+	float RelaodTime = 3.0f;
 
 	bool bCanFire;
 	FTimerHandle FireTimerHandle;

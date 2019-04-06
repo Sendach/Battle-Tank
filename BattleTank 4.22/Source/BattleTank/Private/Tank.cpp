@@ -30,7 +30,6 @@ void ATank::BeginPlay()
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void ATank::AimAt(FVector HitLocation)
@@ -51,6 +50,7 @@ void ATank::SetTurretReference(UTankTurret* TurretToSet)
 
 void ATank::Fire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Shooting %d"), bCanFire);
 	if (Barrel && bCanFire)
 	{
 		bCanFire = false;
@@ -58,8 +58,8 @@ void ATank::Fire()
 		auto spawnedProjectile = GetWorld()->SpawnActor<AProjectile>(Projectile, Barrel->GetSocketLocation(FName("Projectile")), 
 			Barrel->GetSocketRotation(FName("Projectile")));
 		spawnedProjectile->LaunchProjectile(BulletSpeed);
-
-		GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ATank::ResetFire, 3.0f, false);
+		
+		GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ATank::ResetFire, RelaodTime, false);
 	}
 }
 
