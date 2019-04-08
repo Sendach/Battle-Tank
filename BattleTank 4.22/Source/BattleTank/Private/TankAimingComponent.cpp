@@ -2,12 +2,12 @@
 
 
 #include "TankAimingComponent.h"
-#include "GameFramework/Actor.h"
-#include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TankBarrel.h"
 #include "TankTurret.h"
 #include "Engine/World.h"
+#include "Projectile.h"
+#include "TimerManager.h"
 
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
@@ -19,13 +19,36 @@ UTankAimingComponent::UTankAimingComponent()
 	// ...
 }
 
-void UTankAimingComponent::AimAt(FVector HitLocation, float BulletSpeed)
+void UTankAimingComponent::Initialize(UTankBarrel* BarrelToSet, UTankTurret* TurretToSet)
 {
-	if (Barrel)
+	Barrel = BarrelToSet;
+	Turret = TurretToSet;
+}
+
+void UTankAimingComponent::Fire()
+{
+	if (!ensure(Barrel && Projectile)) { return; }
+	if (bCanFire)
 	{
+		bCanFire = false;
+
+		auto spawnedProjectile = GetWorld()->SpawnActor<AProjectile>(Projectile, Barrel->GetSocketLocation(FName("Projectile")),
+			Barrel->GetSocketRotation(FName("Projectile")));
+		spawnedProjectile->LaunchProjectile(BulletSpeed);
+
+		GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &UTankAimingComponent::ResetFire, RelaodTime, false);
+	}
+}
+
+void UTankAimingComponent::AimAt(FVector HitLocation)
+{
+	if (ensure(Barrel))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("YAYEE"));
+
 		FVector OutBulletVelocity;
 		FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
-
+		
 		// Calculate the outLunchVelocity
 		bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity(this, OutBulletVelocity, StartLocation, HitLocation,
 			BulletSpeed, false, 0.f, 0.f, ESuggestProjVelocityTraceOption::DoNotTrace);
@@ -38,37 +61,33 @@ void UTankAimingComponent::AimAt(FVector HitLocation, float BulletSpeed)
 	}
 }
 
-void UTankAimingComponent::SetBarrelReference(UTankBarrel* BarrelToSet)
-{
-	if (BarrelToSet)
-	{
-		Barrel = BarrelToSet;
-	}
-}
-
-void UTankAimingComponent::SetTurretReference(UTankTurret* TurretToSet)
-{
-	if (TurretToSet)
-	{
-		Turret = TurretToSet;
-	}
-}
-
 void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection)
 {
-	//  Work-out difference between current barrel rotation and AimDirection
-	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
-	auto AimAsRotator = AimDirection.Rotation();
-	auto DeltaRotator = AimAsRotator - BarrelRotator;
+	if (ensure(Barrel))
+	{
+		//  Work-out difference between current barrel rotation and AimDirection
+		auto BarrelRotator = Barrel->GetForwardVector().Rotation();
+		auto AimAsRotator = AimDirection.Rotation();
+		auto DeltaRotator = AimAsRotator - BarrelRotator;
 
-	Barrel->Elevate(DeltaRotator.Pitch);
+		Barrel->Elevate(DeltaRotator.Pitch);
+	}
 }
 
 void UTankAimingComponent::RotateTurret(FVector AimDirection)
 {
-	auto TurretRotator = Turret->GetForwardVector().Rotation();
-	auto AimAsRotator = AimDirection.Rotation();
-	auto DeltaRotator = AimAsRotator - TurretRotator;
+	if (ensure(Turret))
+	{
+		auto TurretRotator = Turret->GetForwardVector().Rotation();
+		auto AimAsRotator = AimDirection.Rotation();
+		auto DeltaRotator = AimAsRotator - TurretRotator;
 
-	Turret->Azimuth(DeltaRotator.Yaw);
+		Turret->Azimuth(DeltaRotator.Yaw);
+	}
+}
+
+void UTankAimingComponent::ResetFire()
+{
+	bCanFire = true;
+	GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }

@@ -2,8 +2,7 @@
 
 
 #include "TankPlayerController.h"
-#include "Tank.h"
-
+#include "TankAimingComponent.h"
 #include "Engine/World.h"
 
 ATankPlayerController::ATankPlayerController()
@@ -17,16 +16,10 @@ ATankPlayerController::ATankPlayerController()
 void ATankPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	
-	auto ControlledTank = GetControlledTank();
-	if (!ControlledTank)
+	auto AimingComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
+	if (ensure(AimingComponent))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AIController does not possesing a tank"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AIController possesing: %s"), *ControlledTank->GetName());
+		FoundAimingComponent(AimingComponent);
 	}
 }
 
@@ -40,14 +33,16 @@ void ATankPlayerController::Tick(float DeltaTime)
 
 void ATankPlayerController::AimTowardsCrosshair()
 {
-	if (GetControlledTank())
+	auto AimingComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
+	if (!ensure(AimingComponent)) { return; }
+
+	FVector HitLocation; // OUT parameter
+
+	if (GetSightRayHitLocation(HitLocation))
 	{
-		FVector HitLocation; // OUT parameter
-		if (GetSightRayHitLocation(HitLocation))
-		{
-			GetControlledTank()->AimAt(HitLocation);
-		}
+		AimingComponent->AimAt(HitLocation);
 	}
+	
 }
 
 // Gets world location of ray-trace through crosshair, true if it hits landscape
@@ -91,9 +86,4 @@ bool ATankPlayerController::GetAimVectorHitLocation(FVector& HitLocation, FVecto
 	}
 	HitLocation = FVector(0);
 	return false;
-}
-
-ATank* ATankPlayerController::GetControlledTank() const
-{
-	return Cast<ATank>(GetPawn());
 }

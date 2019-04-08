@@ -6,8 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TankPlayerController.generated.h"
 
-
-class ATank;
+class UTankAimingComponent;
 
 UCLASS()
 class BATTLETANK_API ATankPlayerController : public APlayerController
@@ -17,6 +16,8 @@ class BATTLETANK_API ATankPlayerController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Setup")
+	void FoundAimingComponent(UTankAimingComponent* AimCompRed);
 
 public:
 	ATankPlayerController();
@@ -26,7 +27,7 @@ public:
 	void AimTowardsCrosshair();
 
 	bool GetSightRayHitLocation(FVector& OutHitLocation) const;
-	ATank* GetControlledTank() const;
+	
 	// Calculates the direction of the crosshair in the world
 	bool GetAimDirection(FVector2D ScreenLocation, FVector& AimDirection) const;
 	// Ray trace from the crosshair position out to the world

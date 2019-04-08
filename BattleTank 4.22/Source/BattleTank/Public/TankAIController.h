@@ -6,8 +6,6 @@
 #include "AIController.h"
 #include "TankAIController.generated.h"
 
-class ATank;
-
 UCLASS()
 class BATTLETANK_API ATankAIController : public AAIController
 {
@@ -19,6 +17,6 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 private:
 
-	ATank* GetControlledTank() const;
-	ATank* GetPlayerTank() const;
+	// How close can the AI tank get to the player before they have to stop
+	float AcceptanceRadius = 3000.f;
 };
